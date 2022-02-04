@@ -1,7 +1,7 @@
 import sys
 
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QAction
 from PyQt5 import QtCore
 import os
 from search import Search
@@ -15,6 +15,8 @@ class Example(QWidget):
 
         self.point = Search()
         self.param = self.point.point_param
+        self.type_map = {'map': 'Схема', 'sat': 'Спутник', 'sat,skl': 'Гибрид'}
+        self.map = 'map'
         self.map_file = self.point.map_api(self.param)
         self.initUI()
 
@@ -28,11 +30,20 @@ class Example(QWidget):
         self.draw_map()
 
     def draw_map(self):
+        self.param = {
+            "ll": ",".join(map(str, self.point.ll)),
+            "spn": ",".join(map(str, self.point.spn)),
+            "l": self.map,
+            # "pt": ",".join(map(str, point.ll))
+        }
+        self.map_file = self.point.map_api(self.param)
+
         self.pixmap = QPixmap(self.map_file)
         self.image.setPixmap(self.pixmap.scaled(600, 450))
         self.image.setPixmap(self.pixmap)
 
     def keyPressEvent(self, event):  # Обработка клавиш
+
         if event.key() == QtCore.Qt.Key.Key_Up:
             self.point.ll = (self.point.ll[0], self.point.ll[1] + self.point.spn[1])
         if event.key() == QtCore.Qt.Key.Key_Down:
@@ -41,27 +52,29 @@ class Example(QWidget):
             self.point.ll = (self.point.ll[0] - self.point.spn[0], self.point.ll[1])
         if event.key() == QtCore.Qt.Key.Key_Right:
             self.point.ll = (self.point.ll[0] + self.point.spn[0], self.point.ll[1])
-        if event.key() == QtCore.Qt.Key.Key_PageUp:
-            if self.point.spn[0] < 0.6:
-                self.point.spn = (self.point.spn[0] * 2, self.point.spn[1] * 2)
-        if event.key() == QtCore.Qt.Key.Key_PageDown:
-            if self.point.spn[0] > 0.001:
-                self.point.spn = (self.point.spn[0] / 2, self.point.spn[1] / 2)
+
         if event.key() == QtCore.Qt.Key.Key_Escape:
             self.close()
-        self.param = {
-            "ll": ",".join(map(str, self.point.ll)),
-            "spn": ",".join(map(str, self.point.spn)),
-            "l": "map",
-            # "pt": ",".join(map(str, point.ll))
-        }
-        self.map_file = self.point.map_api(self.param)
+
         self.draw_map()
         event.accept()
 
-    # def eventFilter(self, source, event): Колесико мыши
-    #     if (source == self.graphicsView.viewport() and
-    #             event.type() == QtCore.QEvent.):
+    def wheelEvent(self, event):
+        angle = event.angleDelta() / 8
+        angleY = angle.y()
+
+        if angleY > 0:
+            if self.point.spn[0] > 0.001:
+                self.point.spn = (self.point.spn[0] / 2, self.point.spn[1] / 2)
+        else:
+            if self.point.spn[0] < 0.6:
+                self.point.spn = (self.point.spn[0] * 2, self.point.spn[1] * 2)
+
+        self.draw_map()
+
+    def eventFilter(self, source, event):
+        if event.type() == QtCore.Qt.Key.Key_Right:
+            print('нажалось')
 
     def closeEvent(self, event):
         """При закрытии формы подчищаем за собой"""
