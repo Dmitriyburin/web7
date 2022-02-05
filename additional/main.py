@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBo
 from PyQt5.QtCore import Qt
 from os import remove
 from search import Search
-from geocoder import geocode
+from geocoder import get_ll_span
 
 SCREEN_SIZE = [600, 550]
 
@@ -109,7 +109,7 @@ class Example(QWidget):
         self.full_name_object = self.point.full_name
         text = self.full_name_object[0]
         if self.full_name_object[1]:
-            text += '; ' + self.full_name_object[1] if self.postal_code else\
+            text = self.full_name_object[0] + '; ' + self.full_name_object[1] if self.postal_code else\
                 self.full_name_object[0]
 
         self.full_name.setText(text)
@@ -173,30 +173,32 @@ class Example(QWidget):
         self.draw_map()
 
     def mousePressEvent(self, event):
-        if event.button() == 1:  # Нажатие ПКМ
+        if event.button() == 1:  # Нажатие ЛКМ
             x, y = event.pos().x(), event.pos().y()
             pos_change = SCREEN_SIZE[0] // 2 - x, (SCREEN_SIZE[1] - 100) // 2 - y
             degrees = self.point.ll[0] - (self.point.spn[0] / 380 * pos_change[0]),\
                       self.point.ll[1] + (self.point.spn[1] / 380 * pos_change[1])
 
-            self.point = Search(f'{degrees[0]},{degrees[1]}', spn=self.point.spn)
+            # self.ll = self.point.ll
+            # self.point = Search(f'{self.point.ll[0]},{self.point.ll[1]}', spn=self.point.spn)
 
             # метка ставится ровно в той точке, куда нажали (если удалить, метка будет привязана к объекту
-            self.point.ll = degrees
+            # self.point.ll = degrees
             self.param = self.point.point_param
             self.map_file = self.point.map_api(self.param)
 
-            self.point_selected = self.point.ll
-            self.full_name_object = self.point.full_name
+            self.point_selected = degrees[0], degrees[1]
+            self.full_name_object = get_ll_span(f'{degrees[0]},{degrees[1]}')[2]
 
             text = self.full_name_object[0]
             if self.full_name_object[1]:
-                text += '; ' + self.full_name_object[1] if self.postal_code else\
+                text = self.full_name_object[0] + '; ' + self.full_name_object[1] if self.postal_code else\
                     self.full_name_object[0]
 
             self.full_name.setText(text)
             self.full_name.setVisible(True)
 
+            # self.point = Search(f'{self.ll[0]},{self.ll[1]}')
             self.draw_map(pt=f'{degrees[0]},{degrees[1]}')
 
     def eventFilter(self, source, event):
