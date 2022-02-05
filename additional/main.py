@@ -80,6 +80,12 @@ class Example(QWidget):
         self.combo.currentTextChanged.connect(self.set_l)
         self.combo.move(10, 10)
 
+    def mousePressEvent(self, event):
+        '''Но это не будет работать если мы перейдем к другому полушарию, только для северо-восточного полушария'''
+        print(self.point.spn)
+        print(f"Координаты(широта, высота): {self.point.ll[1] - (event.y() - 225) * self.point.spn[1] / 450}, "
+              f"{self.point.ll[0] + (event.x() - 300) * self.point.spn[0] / 600}")
+
     def change_postal_code(self, event):
         if event == Qt.Checked:
             self.postal_code = True
