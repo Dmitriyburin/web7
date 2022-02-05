@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBo
 from PyQt5.QtCore import Qt
 from os import remove
 from search import Search
+from geocoder import geocode
 
 SCREEN_SIZE = [600, 550]
 
@@ -11,8 +12,8 @@ SCREEN_SIZE = [600, 550]
 class LineEdit(QLineEdit):
     def keyPressEvent(self, event):
         if event.key() in (
-            Qt.Key.Key_Right,
-            Qt.Key.Key_Left
+                Qt.Key.Key_Right,
+                Qt.Key.Key_Left
         ):
             event.ignore()
         else:
@@ -22,8 +23,8 @@ class LineEdit(QLineEdit):
 class ComboBox(QComboBox):
     def keyPressEvent(self, event):
         if event.key() in (
-            Qt.Key.Key_Up,
-            Qt.Key.Key_Down
+                Qt.Key.Key_Up,
+                Qt.Key.Key_Down
         ):
             event.ignore()
         else:
@@ -95,21 +96,27 @@ class Example(QWidget):
 
     def search_object(self):
         self.point = Search(self.name_object.text())
+
         self.param = self.point.point_param
         self.map_file = self.point.map_api(self.param)
-        self.draw_map(pt=self.point.point_param['pt'])
-        print(self.point.ll)
         self.point_selected = self.point.ll
         self.full_name_object = self.point.full_name
-        text = self.full_name_object[0] + '; ' + self.full_name_object[1] if self.postal_code else self.full_name_object[0]
+        text = self.full_name_object[0]
+        if self.full_name_object[1]:
+            text += '; ' + self.full_name_object[1] if self.postal_code else\
+                self.full_name_object[0]
+
         self.full_name.setText(text)
         self.full_name.setVisible(True)
+        self.draw_map(pt=self.point.point_param['pt'])
 
     def draw_map(self, pt=""):
         if self.point_selected:
             print(self.point.spn)
-            x1, x2 = self.point.ll[0] - self.point.ll[0] * self.point.spn[0], self.point.ll[0] + self.point.ll[0] * self.point.spn[0]
-            y1, y2 = self.point.ll[1] - self.point.ll[1] * self.point.spn[1], self.point.ll[1] + self.point.ll[1] * self.point.spn[1]
+            x1, x2 = self.point.ll[0] - self.point.ll[0] * self.point.spn[0], self.point.ll[0] + self.point.ll[0] *\
+                     self.point.spn[0]
+            y1, y2 = self.point.ll[1] - self.point.ll[1] * self.point.spn[1], self.point.ll[1] + self.point.ll[1] *\
+                     self.point.spn[1]
             if x1 < self.point_selected[0] < x2 and y1 < self.point_selected[1] < y2:
                 pt = ",".join(map(str, self.point_selected))
         self.param = {
@@ -158,6 +165,33 @@ class Example(QWidget):
                 self.point.spn = (self.point.spn[0] * 2, self.point.spn[1] * 2)
 
         self.draw_map()
+
+    def mousePressEvent(self, event):
+        if event.button() == 1:  # Нажатие ПКМ
+            x, y = event.pos().x(), event.pos().y()
+            pos_change = SCREEN_SIZE[0] // 2 - x, (SCREEN_SIZE[1] - 100) // 2 - y
+            degrees = self.point.ll[0] - (self.point.spn[0] / 380 * pos_change[0]),\
+                      self.point.ll[1] + (self.point.spn[1] / 380 * pos_change[1])
+
+            self.point = Search(f'{degrees[0]},{degrees[1]}', spn=self.point.spn)
+
+            # метка ставится ровно в той точке, куда нажали (если удалить, метка будет привязана к объекту
+            self.point.ll = degrees
+            self.param = self.point.point_param
+            self.map_file = self.point.map_api(self.param)
+
+            self.point_selected = self.point.ll
+            self.full_name_object = self.point.full_name
+
+            text = self.full_name_object[0]
+            if self.full_name_object[1]:
+                text += '; ' + self.full_name_object[1] if self.postal_code else\
+                    self.full_name_object[0]
+
+            self.full_name.setText(text)
+            self.full_name.setVisible(True)
+
+            self.draw_map(pt=f'{degrees[0]},{degrees[1]}')
 
     def eventFilter(self, source, event):
         if event.type() == Qt.Key.Key_Right:

@@ -48,7 +48,8 @@ def get_ll_span(address):
     if not toponym:
         return (None, None)
     print(toponym['metaDataProperty']['GeocoderMetaData']['Address'])
-    full_name = (toponym['metaDataProperty']['GeocoderMetaData']['Address']['formatted'], toponym['metaDataProperty']['GeocoderMetaData']['Address']['postal_code'])
+    full_name = (toponym['metaDataProperty']['GeocoderMetaData']['Address']['formatted'],
+                 toponym['metaDataProperty']['GeocoderMetaData']['Address'].get('postal_code', False))
     # Координаты центра топонима:
     toponym_coodrinates = toponym["Point"]["pos"]
     # Долгота и Широта :
@@ -59,7 +60,6 @@ def get_ll_span(address):
 
     # Рамка вокруг объекта:
     envelope = toponym["boundedBy"]["Envelope"]
-
     # левая, нижняя, правая и верхняя границы из координат углов:
     l, b = envelope["lowerCorner"].split(" ")
     r, t = envelope["upperCorner"].split(" ")

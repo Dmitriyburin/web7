@@ -4,8 +4,10 @@ from geocoder import get_ll_span
 
 
 class Search:
-    def __init__(self, toponym_to_find="пр-т Кузнецова, 25к3"):
+    def __init__(self, toponym_to_find="пр-т Кузнецова, 25к3", spn=None):
         self.ll, self.spn, self.full_name = get_ll_span(toponym_to_find)
+        if spn is not None:
+            self.spn = spn
         self.point_param = {
             "ll": ",".join(map(str, self.ll)),
             "spn": ",".join(map(str, self.spn)),
@@ -13,7 +15,6 @@ class Search:
             "pt": ",".join(map(str, self.ll))
 
         }
-
 
     def map_api(self, params):
         map_api_server = "http://static-maps.yandex.ru/1.x/"
