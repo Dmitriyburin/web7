@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QLineEdit
-from PyQt5 import QtCore
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QLineEdit, QCheckBox
+from PyQt5.QtCore import Qt
 from os import remove
 from search import Search
 
@@ -11,8 +11,8 @@ SCREEN_SIZE = [600, 550]
 class LineEdit(QLineEdit):
     def keyPressEvent(self, event):
         if event.key() in (
-            QtCore.Qt.Key.Key_Right,
-            QtCore.Qt.Key.Key_Left
+            Qt.Key.Key_Right,
+            Qt.Key.Key_Left
         ):
             event.ignore()
         else:
@@ -22,8 +22,8 @@ class LineEdit(QLineEdit):
 class ComboBox(QComboBox):
     def keyPressEvent(self, event):
         if event.key() in (
-            QtCore.Qt.Key.Key_Up,
-            QtCore.Qt.Key.Key_Down
+            Qt.Key.Key_Up,
+            Qt.Key.Key_Down
         ):
             event.ignore()
         else:
@@ -33,6 +33,7 @@ class ComboBox(QComboBox):
 class Example(QWidget):
     def __init__(self):
         super().__init__()
+        self.postal_code = False
         self.point_selected = ''
         self.point = Search()
         self.param = self.point.point_param
@@ -58,8 +59,11 @@ class Example(QWidget):
         self.btn.move(350, 450)
         self.btn.clicked.connect(self.clear_object)
 
-        self.full_name = QLabel(self)
+        cb = QCheckBox('Почтовый индекс', self)
+        cb.move(450, 450)
+        cb.stateChanged.connect(self.change_postal_code)
 
+        self.full_name = QLabel(self)
         self.full_name.move(0, 500)
         self.full_name.resize(SCREEN_SIZE[0], 25)
         self.full_name.setVisible(False)
@@ -75,6 +79,14 @@ class Example(QWidget):
         self.combo.currentTextChanged.connect(self.set_l)
         self.combo.move(10, 10)
 
+    def change_postal_code(self, event):
+        if event == Qt.Checked:
+            self.postal_code = True
+            self.full_name.setText(self.full_name_object[0] + '; ' + self.full_name_object[1])
+        else:
+            self.postal_code = False
+            self.full_name.setText(self.full_name_object[0])
+
     def clear_object(self):
         self.name_object.setText('')
         self.point_selected = ''
@@ -89,7 +101,8 @@ class Example(QWidget):
         print(self.point.ll)
         self.point_selected = self.point.ll
         self.full_name_object = self.point.full_name
-        self.full_name.setText(self.full_name_object)
+        text = self.full_name_object[0] + '; ' + self.full_name_object[1] if self.postal_code else self.full_name_object[0]
+        self.full_name.setText(text)
         self.full_name.setVisible(True)
 
     def draw_map(self, pt=""):
@@ -114,16 +127,16 @@ class Example(QWidget):
     def keyPressEvent(self, event):  # Обработка клавиш
         print('здеся')
 
-        if event.key() == QtCore.Qt.Key.Key_Up:
+        if event.key() == Qt.Key.Key_Up:
             self.point.ll = (self.point.ll[0], self.point.ll[1] + self.point.spn[1])
-        if event.key() == QtCore.Qt.Key.Key_Down:
+        if event.key() == Qt.Key.Key_Down:
             self.point.ll = (self.point.ll[0], self.point.ll[1] - self.point.spn[1])
-        if event.key() == QtCore.Qt.Key.Key_Left:
+        if event.key() == Qt.Key.Key_Left:
             self.point.ll = (self.point.ll[0] - self.point.spn[0], self.point.ll[1])
-        if event.key() == QtCore.Qt.Key.Key_Right:
+        if event.key() == Qt.Key.Key_Right:
             self.point.ll = (self.point.ll[0] + self.point.spn[0], self.point.ll[1])
 
-        if event.key() == QtCore.Qt.Key.Key_Escape:
+        if event.key() == Qt.Key.Key_Escape:
             self.close()
 
         self.draw_map()
@@ -147,7 +160,7 @@ class Example(QWidget):
         self.draw_map()
 
     def eventFilter(self, source, event):
-        if event.type() == QtCore.Qt.Key.Key_Right:
+        if event.type() == Qt.Key.Key_Right:
             print('нажалось')
 
     def closeEvent(self, event):
