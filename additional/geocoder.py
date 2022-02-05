@@ -47,7 +47,7 @@ def get_ll_span(address):
     toponym = geocode(address)
     if not toponym:
         return (None, None)
-
+    full_name = toponym['metaDataProperty']['GeocoderMetaData']['Address']['formatted']
     # Координаты центра топонима:
     toponym_coodrinates = toponym["Point"]["pos"]
     # Долгота и Широта :
@@ -70,7 +70,7 @@ def get_ll_span(address):
     # Собираем размеры в параметр span
     span = (dx, dy)
 
-    return ll, span
+    return ll, span, full_name
 
 
 # Находим ближайшие к заданной точке объекты заданного типа.

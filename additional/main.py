@@ -55,8 +55,14 @@ class Example(QWidget):
 
         self.btn = QPushButton('Сбросить', self)
         self.btn.resize(100, 25)
-        self.btn.move(250, 500)
+        self.btn.move(350, 450)
         self.btn.clicked.connect(self.clear_object)
+
+        self.full_name = QLabel(self)
+
+        self.full_name.move(0, 500)
+        self.full_name.resize(SCREEN_SIZE[0], 25)
+        self.full_name.setVisible(False)
 
         self.image = QLabel(self)
         self.image.move(0, 0)
@@ -72,6 +78,7 @@ class Example(QWidget):
     def clear_object(self):
         self.name_object.setText('')
         self.point_selected = ''
+        self.full_name.setVisible(False)
         self.draw_map()
 
     def search_object(self):
@@ -81,6 +88,9 @@ class Example(QWidget):
         self.draw_map(pt=self.point.point_param['pt'])
         print(self.point.ll)
         self.point_selected = self.point.ll
+        self.full_name_object = self.point.full_name
+        self.full_name.setText(self.full_name_object)
+        self.full_name.setVisible(True)
 
     def draw_map(self, pt=""):
         if self.point_selected:
