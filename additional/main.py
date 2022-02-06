@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBo
 from PyQt5.QtCore import Qt
 from os import remove
 from search import Search
-from geocoder import get_ll_span
+from geocoder import get_ll_span, get_nearest_object
 
 SCREEN_SIZE = [600, 550]
 
@@ -80,12 +80,6 @@ class Example(QWidget):
         self.combo.currentTextChanged.connect(self.set_l)
         self.combo.move(10, 10)
 
-    def mousePressEvent(self, event):
-        '''Но это не будет работать если мы перейдем к другому полушарию, только для северо-восточного полушария'''
-        print(self.point.spn)
-        print(f"Координаты(широта, высота): {self.point.ll[1] - (event.y() - 225) * self.point.spn[1] / 450}, "
-              f"{self.point.ll[0] + (event.x() - 300) * self.point.spn[0] / 600}")
-
     def change_postal_code(self, event):
         if event == Qt.Checked:
             self.postal_code = True
@@ -118,7 +112,6 @@ class Example(QWidget):
 
     def draw_map(self, pt=""):
         if self.point_selected:
-            print(self.point.spn)
             x1, x2 = self.point.ll[0] - self.point.ll[0] * self.point.spn[0], self.point.ll[0] + self.point.ll[0] *\
                      self.point.spn[0]
             y1, y2 = self.point.ll[1] - self.point.ll[1] * self.point.spn[1], self.point.ll[1] + self.point.ll[1] *\
@@ -200,10 +193,14 @@ class Example(QWidget):
 
             # self.point = Search(f'{self.ll[0]},{self.ll[1]}')
             self.draw_map(pt=f'{degrees[0]},{degrees[1]}')
-
-    def eventFilter(self, source, event):
-        if event.type() == Qt.Key.Key_Right:
-            print('нажалось')
+        elif event.button() == 2:
+            x, y = event.pos().x(), event.pos().y()
+            pos_change = SCREEN_SIZE[0] // 2 - x, (SCREEN_SIZE[1] - 100) // 2 - y
+            degrees = self.point.ll[0] - (self.point.spn[0] / 380 * pos_change[0]), \
+                      self.point.ll[1] + (self.point.spn[1] / 380 * pos_change[1])
+            self.clear_object()
+            self.full_name.setVisible(True)
+            self.full_name.setText(get_nearest_object(degrees))
 
     def closeEvent(self, event):
         """При закрытии формы подчищаем за собой"""

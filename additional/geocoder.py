@@ -1,4 +1,4 @@
-import requests
+from requests import get
 
 API_KEY = '40d1649f-0493-4b70-98ba-98533de7710b'
 
@@ -12,7 +12,7 @@ def geocode(address):
         "format": "json"}
 
     # Выполняем запрос.
-    response = requests.get(geocoder_request, params=geocoder_params)
+    response = get(geocoder_request, params=geocoder_params)
 
     if response:
         # Преобразуем ответ в json-объект
@@ -47,7 +47,6 @@ def get_ll_span(address):
     toponym = geocode(address)
     if not toponym:
         return (None, None)
-    print(toponym['metaDataProperty']['GeocoderMetaData']['Address'])
     full_name = (toponym['metaDataProperty']['GeocoderMetaData']['Address']['formatted'],
                  toponym['metaDataProperty']['GeocoderMetaData']['Address'].get('postal_code', False))
     # Координаты центра топонима:
@@ -74,18 +73,23 @@ def get_ll_span(address):
     return ll, span, full_name
 
 
-# Находим ближайшие к заданной точке объекты заданного типа.
-def get_nearest_object(point, kind):
+# Находим организации
+def get_nearest_object(point):
     ll = "{0},{1}".format(point[0], point[1])
-    geocoder_request = f"http://geocode-maps.yandex.ru/1.x/"
-    geocoder_params = {
-        "apikey": API_KEY,
-        "geocode": ll,
-        "format": "json"}
-    if kind:
-        geocoder_params['kind'] = kind
+    print(ll)
+    geocoder_request = "https://search-maps.yandex.ru/v1/"
+    params = {
+        "apikey": 'dda3ddba-c9ea-4ead-9010-f43fbc15c6e3',
+        "lang": 'RU',
+        "ll": ll,
+        "text": 'Магазин',
+        "spn": "0.0005, 0.0005",
+        "rspn": '1',
+        "results": '1',
+        'type': 'biz'
+    }
     # Выполняем запрос к геокодеру, анализируем ответ.
-    response = requests.get(geocoder_request, params=geocoder_params)
+    response = get(geocoder_request, params=params)
     if not response:
         raise RuntimeError(
             f"""Ошибка выполнения запроса:
@@ -94,7 +98,9 @@ def get_nearest_object(point, kind):
 
     # Преобразуем ответ в json-объект
     json_response = response.json()
-
+    print(json_response)
     # Получаем первый топоним из ответа геокодера.
-    features = json_response["response"]["GeoObjectCollection"]["featureMember"]
-    return features[0]["GeoObject"]["name"] if features else None
+    try:
+        return json_response['features'][0]['properties']['name']
+    except IndexError:
+        return 'Организации не найдены'
