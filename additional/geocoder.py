@@ -83,7 +83,7 @@ def get_nearest_object(point, name='магазин'):
         "lang": 'RU',
         "ll": ll,
         "text": name,
-        "spn": "0.0005, 0.0005",
+        "spn": "0.002, 0.0008",
         "rspn": '1',
         "results": '1',
         'type': 'biz'
