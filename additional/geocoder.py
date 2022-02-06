@@ -74,7 +74,7 @@ def get_ll_span(address):
 
 
 # Находим организации
-def get_nearest_object(point):
+def get_nearest_object(point, name='магазин'):
     ll = "{0},{1}".format(point[0], point[1])
     print(ll)
     geocoder_request = "https://search-maps.yandex.ru/v1/"
@@ -82,7 +82,7 @@ def get_nearest_object(point):
         "apikey": 'dda3ddba-c9ea-4ead-9010-f43fbc15c6e3',
         "lang": 'RU',
         "ll": ll,
-        "text": 'Магазин',
+        "text": name,
         "spn": "0.0005, 0.0005",
         "rspn": '1',
         "results": '1',

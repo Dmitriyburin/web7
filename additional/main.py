@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QLineEdit, QCheckBox
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QLineEdit, QCheckBox, QCompleter
 from PyQt5.QtCore import Qt
 from os import remove
 from search import Search
@@ -47,9 +47,17 @@ class Example(QWidget):
         self.setGeometry(100, 100, *SCREEN_SIZE)
         self.setWindowTitle('Отображение карты')
 
+        self.type_object = LineEdit(self)
+        self.type_object.move(0, 525)
+        self.type_object.resize(200, 25)
+        self.type_object.setPlaceholderText('Тип организации')
+        completer = QCompleter(['магазин', 'ресторан', 'аптека', 'музей'], self.type_object)
+        self.type_object.setCompleter(completer)
+
         self.name_object = LineEdit(self)
         self.name_object.move(0, 450)
         self.name_object.resize(200, 25)
+        self.name_object.setPlaceholderText('Адрес')
         self.btn = QPushButton('Поиск', self)
         self.btn.resize(100, 25)
         self.btn.move(250, 450)
@@ -200,7 +208,7 @@ class Example(QWidget):
                       self.point.ll[1] + (self.point.spn[1] / 380 * pos_change[1])
             self.clear_object()
             self.full_name.setVisible(True)
-            self.full_name.setText(get_nearest_object(degrees))
+            self.full_name.setText(get_nearest_object(degrees, name=self.type_object.text() if self.type_object.text() else 'магазин'))
 
     def closeEvent(self, event):
         """При закрытии формы подчищаем за собой"""
